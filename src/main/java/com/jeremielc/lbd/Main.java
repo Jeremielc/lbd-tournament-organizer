@@ -5,8 +5,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,7 +32,6 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         Instant start, stop;
         long timeElapsed = 0;
 
-        // ---------------- Double Player Teams ----------------
         start = Instant.now();
 
         OngoingDisplayTask displayTask = new OngoingDisplayTask();
@@ -82,29 +79,6 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         System.out.println("Elapsed time: " + timeElapsed + " ms");
 
         System.exit(0);
-
-        // ---------------- Single Player Teams ----------------
-        /*
-        start = Instant.now();
-
-        try {
-            combinations = Combinator.generateSingleCombinations(menList);
-        } catch (InvalidPlayerListException ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
-            combinations = new ArrayList<>();
-        }
-
-        matches = RandomMatchMaker.generateSingleMatches(combinations);
-        versusTable = TableMaker.generateVersusTable(menList, null, matches);
-
-        TableMaker.displayVersusTable(menList, womenList, versusTable, false);
-        ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
-
-        stop = Instant.now();
-        timeElapsed = Duration.between(start, stop).toMillis();
-        System.out.println("Elapsed time: " + timeElapsed + "ms");
-        //*/
     }
 
     private static synchronized void addCandidate(Candidate candidate) {
@@ -113,6 +87,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
 
     private static Candidate findBestCandidate() {
         Candidate bestCandidate = new Candidate(Integer.MAX_VALUE, null);
+        
         for (Candidate c : candidates) {
             if (c.getScore() == 0) {
                 return c;
