@@ -2,10 +2,11 @@ package com.jeremielc.lbd;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,9 +15,10 @@ import java.util.concurrent.TimeUnit;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
 import com.jeremielc.lbd.pojo.matches.AbstractMatch;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
+import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
-    private static final Set<Candidate> candidates = new HashSet<>();
+    private static final List<Candidate> candidates = new ArrayList<>();
 
     public static void main(String[] args) {
     String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"/*, "K", "L", "M", "N", "O", "P"*/};
@@ -28,12 +30,15 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
 
         CountDownLatch latch = new CountDownLatch(1000000);
         int availableProcessors = Runtime.getRuntime().availableProcessors();
-        ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(availableProcessors > 4 ? availableProcessors : 4);
+        ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(availableProcessors > 16 ? availableProcessors : 16);
         Instant start, stop;
         long timeElapsed = 0;
 
         // ---------------- Double Player Teams ----------------
         start = Instant.now();
+
+        OngoingDisplayTask displayTask = new OngoingDisplayTask();
+        displayTask.run();
 
         for (int i = 0; i < latch.getCount(); i++) {
             tpe.submit(() -> {
@@ -42,12 +47,8 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
                     List<AbstractMatch> matches = RandomMatchMaker.generateRandomDoubleMatches(combinations);
                     String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matches);
                     int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
-    
-                    addCandidate(score, versusTable);
                     
-                    if (score == 0) {
-                        TableMaker.displayVersusTable(menList, womenList, versusTable, false);
-                    }
+                    addCandidate(new Candidate(score, versusTable));
                 } catch (InvalidPlayerListException ex) {
                     System.err.println(ex.getMessage());
                     ex.printStackTrace(System.err);
@@ -59,7 +60,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         }
             
         try {
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(4, TimeUnit.SECONDS);
             tpe.awaitTermination(1, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             System.err.println(ex.getMessage());
@@ -67,9 +68,10 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         } finally {
             tpe.getQueue().clear();
             tpe.shutdownNow();
+            displayTask.halt();
         }
 
-        Candidate bestCandidate = candidates.stream().findFirst().orElse(new Candidate(Integer.MIN_VALUE, null));
+        Candidate bestCandidate = findBestCandidate();
 
         System.out.println("Best candidate of " + candidates.size() + " :");
         System.out.println(" - Score: " + bestCandidate.getScore());
@@ -105,7 +107,22 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         //*/
     }
 
-    private static synchronized void addCandidate(int score, String[][] versusTable) {
-        candidates.add(new Candidate(score, versusTable));
+    private static synchronized void addCandidate(Candidate candidate) {
+        candidates.add(candidate);
+    }
+
+    private static Candidate findBestCandidate() {
+        Candidate bestCandidate = new Candidate(Integer.MAX_VALUE, null);
+        for (Candidate c : candidates) {
+            if (c.getScore() == 0) {
+                return c;
+            } else {
+                if (c.getScore() < bestCandidate.getScore()) {
+                    bestCandidate = c;
+                }
+            }
+        }
+
+        return bestCandidate;
     }
 }

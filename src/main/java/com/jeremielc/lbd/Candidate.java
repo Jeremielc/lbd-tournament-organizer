@@ -1,6 +1,6 @@
 package com.jeremielc.lbd;
 
-public class Candidate implements Comparable {
+public class Candidate implements Comparable<Candidate> {
     private final int score;
     private final String[][] versusTable;
 
@@ -10,10 +10,10 @@ public class Candidate implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        if (this.score == ((Candidate) o).getScore()) {
+    public int compareTo(Candidate o) {
+        if (this.score == o.getScore()) {
             return 0;
-        } else if (this.score > ((Candidate) o).getScore()) {
+        } else if (this.score > o.getScore()) {
             return 1;
         } else {
             return -1;
