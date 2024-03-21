@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
-import com.jeremielc.lbd.pojo.matches.AbstractMatch;
+import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
 import com.jeremielc.lbd.pojo.matches.DoubleMatch;
 import com.jeremielc.lbd.pojo.matches.SingleMatch;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
@@ -13,9 +13,14 @@ import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
 
 public class RandomMatchMaker {
-    public static List<AbstractMatch> generateRandomDoubleMatches(List<AbstractTeam> combinations) {
-        return generateRandomDoubleMatches(combinations, true);
+    public static List<AbstractMatch> generateRandomDoubleMatchList(List<DoublePlayerTeam> combinations) throws InvalidCombinationsSizeException {
+        return generateRandomDoubleMatchList(combinations, true);
     }
+
+    public static List<AbstractMatch> generateRandomDoubleMatchList(List<DoublePlayerTeam> combinations, boolean withReciprocal) throws InvalidCombinationsSizeException {
+        if (combinations.size() % 2 != 0) {
+            throw new InvalidCombinationsSizeException("The combinations list should contain an even number of player combinations.");
+        }
 
     public static List<AbstractMatch> generateRandomDoubleMatches(List<AbstractTeam> combinations, boolean withReciprocal) {
         List<AbstractMatch> matches = new ArrayList<>();
@@ -54,11 +59,11 @@ public class RandomMatchMaker {
         return matches;
     }
 
-    public static List<AbstractMatch> generateSingleMatches(List<AbstractTeam> combinations) {
-        return generateSingleMatches(combinations, true);
+    public static List<AbstractMatch> generateSingleMatchList(List<SinglePlayerTeam> combinations) {
+        return generateSingleMatchList(combinations, true);
     }
 
-    public static List<AbstractMatch> generateSingleMatches(List<AbstractTeam> combinations, boolean withReciprocal) {
+    public static List<AbstractMatch> generateSingleMatchList(List<SinglePlayerTeam> combinations, boolean withReciprocal) {
         List<AbstractMatch> matches = new ArrayList<>();
         SinglePlayerTeam aTeam, bTeam;
 
