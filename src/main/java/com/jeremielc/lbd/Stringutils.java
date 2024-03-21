@@ -7,7 +7,7 @@ public class Stringutils {
 
     public static String center(String value, int totalLength, char paddingChar) {
         StringBuilder sb = new StringBuilder(value);
-        boolean leftFirst = false;
+        boolean leftFirst = true;
 
         while(sb.length() < totalLength) {
             leftFirst = !leftFirst;
