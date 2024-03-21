@@ -40,7 +40,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         for (int i = 0; i < latch.getCount(); i++) {
             tpe.submit(() -> {
                 try {
-                    List<AbstractTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
+                    List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
                     List<AbstractMatch> matches = RandomMatchMaker.generateRandomDoubleMatches(combinations);
                     String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matches);
                     int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
