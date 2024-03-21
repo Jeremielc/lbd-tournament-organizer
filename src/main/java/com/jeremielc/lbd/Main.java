@@ -17,28 +17,36 @@ import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
+    // private static final String[] men = {"A", "B", "C", "D"};
+    // private static final String[] women = {"0", "1", "2", "3"};
+    private static final String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+    private static final String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+    // private static final String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"};
+    // private static final String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
+    // private static final String[] men = {"Alain", "Bart", "Chris", "David", "Eric", "Fred", "Gabin", "Hubert", "Ian", "Jean"};
+    // private static final String[] women = {"Alice", "Betty", "Célia", "Deby", "Elsa", "Fanny", "Gaële", "Hanah", "Ilda", "Julia"};
+
+    private static final List<String> menList = Arrays.asList(men);
+    private static final List<String> womenList = Arrays.asList(women);
+
+    private static final int threadCountlimit = 1000000;
+    private static final CountDownLatch latch = new CountDownLatch(threadCountlimit);
     private static final List<TournamentConfig> candidates = new ArrayList<>();
 
+    private static int cores = Runtime.getRuntime().availableProcessors() * 4;
+    private static Instant start, stop;
+
     public static void main(String[] args) {
-    String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"/*, "K", "L", "M", "N", "O", "P"*/};
-String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11", "12", "13", "14", "15"*/};
-        List<String> menList = Arrays.asList(men);
-        List<String> womenList = Arrays.asList(women);
-
-        candidates.clear();
-
-        CountDownLatch latch = new CountDownLatch(1000000);
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(availableProcessors > 16 ? availableProcessors : 16);
-        Instant start, stop;
-        long timeElapsed = 0;
+        cores = cores > 16 ? cores : 16;
+        ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(cores);
+        System.out.printf(Locale.getDefault(), "Processing will use %,d cores\n", cores);
 
         start = Instant.now();
 
         OngoingDisplayTask displayTask = new OngoingDisplayTask();
         displayTask.run();
 
-        for (int i = 0; i < latch.getCount(); i++) {
+        for (int i = 0; i < threadCountlimit; i++) {
             tpe.submit(() -> {
                 try {
                     List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
@@ -50,7 +58,6 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
                 } catch (InvalidPlayerListException | InvalidCombinationsSizeException ex) {
                     System.err.println(ex.getMessage());
                     ex.printStackTrace(System.err);
-                    return;
                 } finally {
                     latch.countDown();
                 }
@@ -58,7 +65,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
         }
             
         try {
-            latch.await(4, TimeUnit.SECONDS);
+            latch.await(5, TimeUnit.SECONDS);
             tpe.awaitTermination(1, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             System.err.println(ex.getMessage());
