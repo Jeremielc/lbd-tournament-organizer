@@ -11,9 +11,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
+import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
@@ -51,7 +53,7 @@ public class Main {
                 try {
                     List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
                     List<AbstractMatch> matchList = RandomMatchMaker.generateRandomDoubleMatchList(combinations);
-                    String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matches);
+                    String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matchList);
                     int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
                     
                     addCandidate(new TournamentConfig(score, versusTable, matchList));
