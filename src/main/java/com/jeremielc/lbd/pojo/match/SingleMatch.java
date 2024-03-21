@@ -1,4 +1,4 @@
-package com.jeremielc.lbd.pojo.matches;
+package com.jeremielc.lbd.pojo.match;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;

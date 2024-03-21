@@ -6,9 +6,9 @@ import java.util.Random;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
-import com.jeremielc.lbd.pojo.matches.DoubleMatch;
-import com.jeremielc.lbd.pojo.matches.SingleMatch;
-import com.jeremielc.lbd.pojo.teams.AbstractTeam;
+import com.jeremielc.lbd.pojo.match.AbstractMatch;
+import com.jeremielc.lbd.pojo.match.DoubleMatch;
+import com.jeremielc.lbd.pojo.match.SingleMatch;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
 
@@ -22,8 +22,7 @@ public class RandomMatchMaker {
             throw new InvalidCombinationsSizeException("The combinations list should contain an even number of player combinations.");
         }
 
-    public static List<AbstractMatch> generateRandomDoubleMatches(List<AbstractTeam> combinations, boolean withReciprocal) {
-        List<AbstractMatch> matches = new ArrayList<>();
+        List<AbstractMatch> matchList = new ArrayList<>();
         Random random = new Random();
         DoublePlayerTeam aTeam, bTeam;
 
@@ -42,10 +41,10 @@ public class RandomMatchMaker {
             }
 
             try {
-                matches.add(new DoubleMatch(aTeam, bTeam));
+                matchList.add(new DoubleMatch(aTeam, bTeam));
 
                 if (withReciprocal) {
-                    matches.add(new DoubleMatch(bTeam, aTeam));
+                    matchList.add(new DoubleMatch(bTeam, aTeam));
                 }
             } catch (IllegalTeamException ex) {
                 System.err.println(ex.getMessage());
@@ -56,7 +55,7 @@ public class RandomMatchMaker {
             combinations.remove(bTeam);
         }
 
-        return matches;
+        return matchList;
     }
 
     public static List<AbstractMatch> generateSingleMatchList(List<SinglePlayerTeam> combinations) {
@@ -64,7 +63,7 @@ public class RandomMatchMaker {
     }
 
     public static List<AbstractMatch> generateSingleMatchList(List<SinglePlayerTeam> combinations, boolean withReciprocal) {
-        List<AbstractMatch> matches = new ArrayList<>();
+        List<AbstractMatch> matchList = new ArrayList<>();
         SinglePlayerTeam aTeam, bTeam;
 
         for (int i = 0; i < combinations.size(); i++) {
@@ -74,10 +73,10 @@ public class RandomMatchMaker {
 
                 if (!aTeam.getPlayer().equals(bTeam.getPlayer())) {
                     try {
-                        matches.add(new SingleMatch(aTeam, bTeam));
+                        matchList.add(new SingleMatch(aTeam, bTeam));
 
                         if (withReciprocal) {
-                            matches.add(new SingleMatch(bTeam, aTeam));
+                            matchList.add(new SingleMatch(bTeam, aTeam));
                         }
                     } catch (IllegalTeamException ex) {
                         System.err.println(ex.getMessage());
@@ -87,6 +86,6 @@ public class RandomMatchMaker {
             }
         }
 
-        return matches;
+        return matchList;
     }
 }

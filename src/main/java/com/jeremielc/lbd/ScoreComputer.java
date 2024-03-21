@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.exceptions.ParsingException;
-import com.jeremielc.lbd.pojo.matches.AbstractMatch;
-import com.jeremielc.lbd.pojo.matches.SingleMatch;
+import com.jeremielc.lbd.pojo.match.AbstractMatch;
+import com.jeremielc.lbd.pojo.match.SingleMatch;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
 
@@ -29,8 +29,8 @@ public class ScoreComputer {
         int score = 0;
         String sep = DoublePlayerTeam.SEPARATOR;
 
-        List<AbstractMatch> singleFirstPlayerMatches = new ArrayList<>();
-        List<AbstractMatch> singleSecondPlayerMatches = new ArrayList<>();
+        List<AbstractMatch> singleFirstPlayerMatchList = new ArrayList<>();
+        List<AbstractMatch> singleSecondPlayerMatchList = new ArrayList<>();
 
         for (int y = 0; y < versusTable.length; y++) {
             for (int x = 0; x < versusTable[y].length; x++) {
@@ -43,8 +43,8 @@ public class ScoreComputer {
                 String[] players = teamStr.split(DoublePlayerTeam.SEPARATOR);
 
                 try {
-                    singleFirstPlayerMatches.add(new SingleMatch(new SinglePlayerTeam(firstPlayers.get(x)), new SinglePlayerTeam(players[0])));
-                    singleSecondPlayerMatches.add(new SingleMatch(new SinglePlayerTeam(secondPlayers.get(y)), new SinglePlayerTeam(players[1])));
+                    singleFirstPlayerMatchList.add(new SingleMatch(new SinglePlayerTeam(firstPlayers.get(x)), new SinglePlayerTeam(players[0])));
+                    singleSecondPlayerMatchList.add(new SingleMatch(new SinglePlayerTeam(secondPlayers.get(y)), new SinglePlayerTeam(players[1])));
                 } catch (IllegalTeamException ex) {
                     System.err.println(ex.getMessage());
                     ex.printStackTrace(System.err);
@@ -53,10 +53,10 @@ public class ScoreComputer {
             }
         }
 
-        String[][] firstSubTable = TableMaker.generateVersusTable(firstPlayers, null, singleFirstPlayerMatches);
+        String[][] firstSubTable = TableMaker.generateVersusTable(firstPlayers, null, singleFirstPlayerMatchList);
         //TableMaker.displayVersusTable(firstPlayers, firstPlayers, firstSubTable, false);
 
-        String[][] secondSubTable = TableMaker.generateVersusTable(secondPlayers, null, singleSecondPlayerMatches);
+        String[][] secondSubTable = TableMaker.generateVersusTable(secondPlayers, null, singleSecondPlayerMatchList);
         //TableMaker.displayVersusTable(secondPlayers, secondPlayers, secondSubTable, false);
 
         for (String[][] subTable : List.of(firstSubTable, secondSubTable)) {

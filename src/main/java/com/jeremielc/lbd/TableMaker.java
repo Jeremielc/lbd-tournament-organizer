@@ -3,7 +3,7 @@ package com.jeremielc.lbd;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-import com.jeremielc.lbd.pojo.matches.AbstractMatch;
+import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
@@ -12,10 +12,10 @@ public class TableMaker {
     public static final String VERTICAL_SEPARATOR = "|";
     public static final String HORIZONTAL_SEPARATOR = "-";
 
-    public static String[][] generateVersusTable(List<String> firstPlayers, List<String> secondPlayers, List<AbstractMatch> matches) {
+    public static String[][] generateVersusTable(List<String> firstPlayers, List<String> secondPlayers, List<AbstractMatch> matchList) {
         String[][] versusTable = null;
 
-        for (AbstractMatch match : matches) {
+        for (AbstractMatch match : matchList) {
             AbstractTeam aTeam = match.getTeamA();
             AbstractTeam bTeam = match.getTeamB();
 
@@ -36,11 +36,11 @@ public class TableMaker {
             }
 
             if (xCoordinate == -1) {
-                throw new InvalidParameterException("It looks like the matches does not correspond to the provided firstPlayers list.");
+                throw new InvalidParameterException("It looks like the match list does not correspond to the provided firstPlayers list.");
             }
 
             if (yCoordinate == -1) {
-                throw new InvalidParameterException("It looks like the matches does not correspond to the provided secondPlayers list.");
+                throw new InvalidParameterException("It looks like the match list does not correspond to the provided secondPlayers list.");
             }
 
             if (aTeam instanceof DoublePlayerTeam) {

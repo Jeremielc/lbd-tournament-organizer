@@ -11,8 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
-import com.jeremielc.lbd.pojo.matches.AbstractMatch;
-import com.jeremielc.lbd.pojo.teams.AbstractTeam;
+import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
@@ -41,7 +40,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
             tpe.submit(() -> {
                 try {
                     List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
-                    List<AbstractMatch> matches = RandomMatchMaker.generateRandomDoubleMatches(combinations);
+                    List<AbstractMatch> matchList = RandomMatchMaker.generateRandomDoubleMatchList(combinations);
                     String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matches);
                     int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
                     
