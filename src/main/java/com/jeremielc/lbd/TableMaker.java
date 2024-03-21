@@ -11,6 +11,7 @@ import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
 public class TableMaker {
     public static final String VERTICAL_SEPARATOR = "|";
     public static final String HORIZONTAL_SEPARATOR = "-";
+    private static int maxLength = -1;
 
     public static String[][] generateVersusTable(List<String> firstPlayers, List<String> secondPlayers, List<AbstractMatch> matchList) {
         String[][] versusTable = null;
@@ -65,17 +66,17 @@ public class TableMaker {
     }
 
     public static void displayVersusTable(List<String> firstPlayers, List<String> secondPlayers, String[][] versusTable, boolean withLineSeparator) {
-        // Compute maximum width of a cell
-        int maxLength = -1;
-
-        for (String[] row : versusTable) {
-            for (String rowValue : row) {
-                maxLength = rowValue.length() > maxLength ? rowValue.length() : maxLength;
+        if (maxLength == -1) {
+            // Compute maximum width of a cell
+            for (String[] row : versusTable) {
+                for (String rowValue : row) {
+                    maxLength = rowValue.length() > maxLength ? rowValue.length() : maxLength;
+                }
             }
-        }
 
-        //Surround each value with a space char.
-        maxLength += 2;
+            //Surround each value with a space char.
+            maxLength += 2;
+        }
         
         // Horizontal separator
         StringBuilder separator = new StringBuilder();
