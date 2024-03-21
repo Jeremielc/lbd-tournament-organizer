@@ -5,17 +5,19 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
+import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
-    private static final List<Candidate> candidates = new ArrayList<>();
+    private static final List<TournamentConfig> candidates = new ArrayList<>();
 
     public static void main(String[] args) {
     String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"/*, "K", "L", "M", "N", "O", "P"*/};
@@ -44,7 +46,7 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
                     String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matches);
                     int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
                     
-                    addCandidate(new Candidate(score, versusTable));
+                    addCandidate(new TournamentConfig(score, versusTable, matchList));
                 } catch (InvalidPlayerListException | InvalidCombinationsSizeException ex) {
                     System.err.println(ex.getMessage());
                     ex.printStackTrace(System.err);
@@ -67,27 +69,26 @@ String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"/*, "10", "11"
             displayTask.halt();
         }
 
-        Candidate bestCandidate = findBestCandidate();
-
-        System.out.println("Best candidate of " + candidates.size() + " :");
-        System.out.println(" - Score: " + bestCandidate.getScore());
-        TableMaker.displayVersusTable(menList, womenList, bestCandidate.getVersusTable(), false);
-
+        TournamentConfig bestConfig = findBestCandidate();
         stop = Instant.now();
-        timeElapsed = Duration.between(start, stop).toMillis();
-        System.out.println("Elapsed time: " + timeElapsed + " ms");
 
+        System.out.printf(Locale.getDefault(), "Best configuration of %,d:\n", candidates.size());
+        System.out.printf(Locale.getDefault(), " - Score: %,d\n", bestConfig.getScore());
+
+        TableMaker.displayVersusTable(menList, womenList, bestConfig.getVersusTable(), false);
+
+        System.out.printf(Locale.getDefault(), "Elapsed time: %,d ms\n", Duration.between(start, stop).toMillis());
         System.exit(0);
     }
 
-    private static synchronized void addCandidate(Candidate candidate) {
-        candidates.add(candidate);
+    private static synchronized void addCandidate(TournamentConfig config) {
+        candidates.add(config);
     }
 
-    private static Candidate findBestCandidate() {
-        Candidate bestCandidate = new Candidate(Integer.MAX_VALUE, null);
+    private static TournamentConfig findBestCandidate() {
+        TournamentConfig bestCandidate = new TournamentConfig(Integer.MAX_VALUE, null, null);
         
-        for (Candidate c : candidates) {
+        for (TournamentConfig c : candidates) {
             if (c.getScore() == 0) {
                 return c;
             } else {
