@@ -45,7 +45,7 @@ public class TableMaker {
 
             if (aTeam instanceof DoublePlayerTeam) {
                 if (versusTable == null) {
-                    versusTable = new String[firstPlayers.size()][secondPlayers.size()];
+                    versusTable = new String[secondPlayers.size()][firstPlayers.size()];
                 }
 
                 versusTable[yCoordinate][xCoordinate] = bTeam.toString();
