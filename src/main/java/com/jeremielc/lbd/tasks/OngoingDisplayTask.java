@@ -8,7 +8,7 @@ public class OngoingDisplayTask extends CustomTaskWrapper {
             System.out.print(".");
 
             try {
-                Thread.sleep(250);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
                 System.err.println(ex.getMessage());
                 ex.printStackTrace(System.err);
