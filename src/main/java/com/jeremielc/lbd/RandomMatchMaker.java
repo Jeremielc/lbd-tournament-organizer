@@ -28,16 +28,16 @@ public class RandomMatchMaker {
 
         while (!combinations.isEmpty()) {
             if (combinations.size() > 2) {
-                aTeam = (DoublePlayerTeam) combinations.get(random.nextInt(combinations.size()));
-                bTeam = (DoublePlayerTeam) combinations.get(random.nextInt(combinations.size()));
+                aTeam = combinations.get(random.nextInt(combinations.size()));
+                bTeam = combinations.get(random.nextInt(combinations.size()));
 
                 while (aTeam.getFirstPlayer().equals(bTeam.getFirstPlayer()) || aTeam.getSecondPlayer().equals(bTeam.getSecondPlayer())) {
-                    aTeam = (DoublePlayerTeam) combinations.get(random.nextInt(combinations.size()));
-                    bTeam = (DoublePlayerTeam) combinations.get(random.nextInt(combinations.size()));
+                    aTeam = combinations.get(random.nextInt(combinations.size()));
+                    bTeam = combinations.get(random.nextInt(combinations.size()));
                 }
             } else {
-                aTeam = (DoublePlayerTeam) combinations.get(0);
-                bTeam = (DoublePlayerTeam) combinations.get(1);
+                aTeam = combinations.get(0);
+                bTeam = combinations.get(1);
             }
 
             try {
@@ -68,8 +68,8 @@ public class RandomMatchMaker {
 
         for (int i = 0; i < combinations.size(); i++) {
             for (int j = i; j < combinations.size(); j++) {
-                aTeam = (SinglePlayerTeam) combinations.get(i);
-                bTeam = (SinglePlayerTeam) combinations.get(j);
+                aTeam = combinations.get(i);
+                bTeam = combinations.get(j);
 
                 if (!aTeam.getPlayer().equals(bTeam.getPlayer())) {
                     try {
