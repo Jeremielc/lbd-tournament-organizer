@@ -10,41 +10,27 @@ import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
 import com.jeremielc.lbd.pojo.MatchSet;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
+import com.jeremielc.lbd.pojo.match.DoubleMatch;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 
 public class Planner {
     public static List<MatchSet> plan(int courtCount, TournamentConfig config) throws InvalidPlayerListException {
         try {
-            planDoubleMatchList(courtCount, config.getMatchList());
-        } catch (IllegalTeamException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            List<MatchSet> rounds = planDoubleMatchList(courtCount, config.getMatchList());
+
+            for (MatchSet round : rounds) {
+                System.out.println(round.getMatchList());
+            }
+        } catch (IllegalTeamException ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
         }
 
         return new ArrayList<>();
-
-        /*switch (playerLists.length) {
-            case 1:
-            try {
-                return plan(courtCount, config.getVersusTable(), playerLists[0]);
-            } catch (IllegalTeamException ex) {
-                System.err.println(ex.getMessage());
-                ex.printStackTrace(System.err);
-            }
-            case 2:
-                try {
-                    return plan(courtCount, config.getVersusTable(), playerLists[0], playerLists[1]);
-                } catch (IllegalTeamException ex) {
-                    System.err.println(ex.getMessage());
-                    ex.printStackTrace(System.err);
-                }
-            default:
-                throw new InvalidPlayerListException("PlayerList must have a size comprised between 1 and 2 included.");
-        }*/
     }
 
-    private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList) throws IllegalTeamException {
+    private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList)  throws IllegalTeamException {
         List<MatchSet> rounds = new ArrayList<>();
         MatchSet round = new MatchSet();
 
@@ -55,15 +41,55 @@ public class Planner {
         List<MatchSet> rounds = new ArrayList<>();
         MatchSet round = new MatchSet();
 
-        List<List<String>> playersLists =  getPlayersFromDoublePlayerMatchList(matchList);
+        List<List<String>> playersLists = getPlayersFromDoublePlayerMatchList(matchList);
 
         List<String> availableFirstPlayers = new ArrayList<>(playersLists.get(0).size());
         List<String> availableSecondPlayers = new ArrayList<>(playersLists.get(1).size());
         availableFirstPlayers.addAll(playersLists.get(0));
         availableSecondPlayers.addAll(playersLists.get(1));
 
-        System.out.println("First players: " + playersLists.get(0));
-        System.out.println("Second players: " + playersLists.get(1));
+        while (matchList.size() > 0) {
+            for (AbstractMatch match : matchList) {
+                if (round.getMatchList() != null) {
+                    if (round.getMatchList().size() == courtCount || availableFirstPlayers.size() == 0 || availableSecondPlayers.size() == 0) {
+                        break;
+                    }
+                }
+
+                AbstractTeam aTeam = match.getTeamA();
+                AbstractTeam bTeam = match.getTeamB();
+
+                String aFirstPlayer = ((DoublePlayerTeam) aTeam).getFirstPlayer();
+                String aSecondPlayer = ((DoublePlayerTeam) aTeam).getSecondPlayer();
+                String bFirstPlayer = ((DoublePlayerTeam) bTeam).getFirstPlayer();
+                String bSecondPlayer = ((DoublePlayerTeam) bTeam).getSecondPlayer();
+
+                if (availableFirstPlayers.contains(aFirstPlayer) && availableFirstPlayers.contains(bFirstPlayer)
+                        && availableSecondPlayers.contains(aSecondPlayer) && availableSecondPlayers.contains(bSecondPlayer)) {
+                    round.addMatch(match);
+
+                    availableFirstPlayers.remove(aFirstPlayer);
+                    availableFirstPlayers.remove(bFirstPlayer);
+                    availableSecondPlayers.remove(aSecondPlayer);
+                    availableSecondPlayers.remove(bSecondPlayer);
+                }
+            }
+
+            // Clean-up
+            for (AbstractMatch match : round.getMatchList()) {
+                matchList.remove(match);
+
+                // Clear reciprocal match if exists
+                AbstractMatch reciprocalMatch = new DoubleMatch((DoublePlayerTeam) match.getTeamB(), (DoublePlayerTeam) match.getTeamA());
+                matchList.remove(reciprocalMatch);
+            }
+
+            rounds.add(round);
+            round = new MatchSet();
+
+            availableFirstPlayers.addAll(playersLists.get(0));
+            availableSecondPlayers.addAll(playersLists.get(1));
+        }
 
         return rounds;
     }
