@@ -8,10 +8,6 @@ import com.jeremielc.lbd.pojo.match.AbstractMatch;
 public class MatchSet implements Comparable<MatchSet> {
     private final List<AbstractMatch> matchList;
 
-    public MatchSet() {
-        this.matchList = new ArrayList<>();
-    }
-
     public MatchSet(AbstractMatch... args) {
         this.matchList = new ArrayList<>();
 

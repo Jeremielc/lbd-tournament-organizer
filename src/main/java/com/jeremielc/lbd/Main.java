@@ -87,6 +87,14 @@ public class Main {
         TableMaker.displayVersusTable(menList, womenList, bestConfig.getVersusTable(), false);
 
         System.out.printf(Locale.getDefault(), "Elapsed time: %,d ms\n", Duration.between(start, stop).toMillis());
+
+        try {
+            Planner.plan(4, bestConfig);
+        } catch (InvalidPlayerListException ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
+
         System.exit(0);
     }
 
