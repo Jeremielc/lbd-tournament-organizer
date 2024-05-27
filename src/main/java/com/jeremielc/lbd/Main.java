@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
+import com.jeremielc.lbd.pojo.MatchSet;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
@@ -89,7 +90,26 @@ public class Main {
         System.out.printf(Locale.getDefault(), "Elapsed time: %,d ms\n", Duration.between(start, stop).toMillis());
 
         try {
-            Planner.plan(4, bestConfig);
+            List<MatchSet> rounds = Planner.plan(4, bestConfig);
+
+            StringBuilder sb = new StringBuilder();
+            
+            for (int i = 0; i < rounds.size(); i++) {
+                sb.append("#" + (i + 1) + ":\t");
+
+                for (int j = 0; j < rounds.get(i).getMatchList().size(); j++) {
+                    sb.append("Court #" + (j + 1) + ":\t");
+                    sb.append(rounds.get(i).getMatchList().get(j));
+
+                    if (j < rounds.get(i).getMatchList().size() - 1) {
+                        sb.append("\t| ");
+                    }
+                }
+
+                sb.append("\n");
+            }
+
+            System.out.println(sb.toString());
         } catch (InvalidPlayerListException ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);

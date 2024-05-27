@@ -16,23 +16,17 @@ import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 public class Planner {
     public static List<MatchSet> plan(int courtCount, TournamentConfig config) throws InvalidPlayerListException {
         try {
-            List<MatchSet> rounds = planDoubleMatchList(courtCount, config.getMatchList());
-
-            for (MatchSet round : rounds) {
-                System.out.println(round.getMatchList());
-            }
+            return planDoubleMatchList(courtCount, config.getMatchList());
         } catch (IllegalTeamException ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
         }
 
-        return new ArrayList<>();
+        return new ArrayList<>(0);
     }
 
     private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList) throws IllegalTeamException {
         List<MatchSet> rounds = new ArrayList<>();
-        MatchSet round = new MatchSet();
-
         return rounds;
     }
 
@@ -49,10 +43,12 @@ public class Planner {
 
         while (matchList.size() > 0) {
             for (AbstractMatch match : matchList) {
-                if (round.getMatchList() != null) {
-                    if (round.getMatchList().size() == courtCount || availableFirstPlayers.size() == 0 || availableSecondPlayers.size() == 0) {
-                        break;
-                    }
+                if (round.getMatchList() != null && round.getMatchList().size() == courtCount) {
+                    break;
+                }
+
+                if (availableFirstPlayers.size() == 0 || availableSecondPlayers.size() == 0) {
+                    break;
                 }
 
                 AbstractTeam aTeam = match.getTeamA();
@@ -78,42 +74,16 @@ public class Planner {
             // Clean-up
             for (AbstractMatch match : round.getMatchList()) {
                 // Remove match from matchList
-                int matchIndex = -1;
-
-                for (int i = 0; i < matchList.size(); i++) {
-                    if (matchList.get(i).getTeamA().toString().equalsIgnoreCase(match.getTeamA().toString())) {
-                        if (matchList.get(i).getTeamB().toString().equalsIgnoreCase(match.getTeamB().toString())) {
-                            matchIndex = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (matchIndex != -1) {
-                    matchList.remove(matchIndex);
-                } else {
-                    System.err.println("ERROR : match " + match + " was not found in list.");
-                }
+                matchList.remove(match);
 
                 // Remove reciprocal match from matchList
-                int reciprocalMatchIndex = -1;
-
-                for (int i = 0; i < matchList.size(); i++) {
-                    AbstractMatch item = matchList.get(i);
-
-                    if (item.getTeamA().toString().equalsIgnoreCase(match.getTeamB().toString())) {
-                        if (item.getTeamB().toString().equalsIgnoreCase(match.getTeamA().toString())) {
-                            reciprocalMatchIndex = i;
+                for (AbstractMatch item : matchList) {
+                    if (item.getTeamA().toString().equals(match.getTeamB().toString())) {
+                        if (item.getTeamB().toString().equals(match.getTeamA().toString())) {
+                            matchList.remove(item);
                             break;
                         }
                     }
-                }
-
-                // Clear reciprocal match if exists
-                if (reciprocalMatchIndex != -1) {
-                    matchList.remove(reciprocalMatchIndex);
-                } else {
-                    System.err.println("ERROR : reciprocal match was not found in list.");
                 }
             }
 
