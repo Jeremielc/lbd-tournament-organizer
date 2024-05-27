@@ -32,6 +32,6 @@ public class MatchSet implements Comparable<MatchSet> {
     }
 
     public List<AbstractMatch> getMatchList() {
-        return this.getMatchList();
+        return this.matchList;
     }
 }

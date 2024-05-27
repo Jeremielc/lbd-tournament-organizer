@@ -10,7 +10,6 @@ import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
 import com.jeremielc.lbd.pojo.MatchSet;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
-import com.jeremielc.lbd.pojo.match.DoubleMatch;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
 
@@ -30,7 +29,7 @@ public class Planner {
         return new ArrayList<>();
     }
 
-    private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList)  throws IllegalTeamException {
+    private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList) throws IllegalTeamException {
         List<MatchSet> rounds = new ArrayList<>();
         MatchSet round = new MatchSet();
 
@@ -64,31 +63,71 @@ public class Planner {
                 String bFirstPlayer = ((DoublePlayerTeam) bTeam).getFirstPlayer();
                 String bSecondPlayer = ((DoublePlayerTeam) bTeam).getSecondPlayer();
 
-                if (availableFirstPlayers.contains(aFirstPlayer) && availableFirstPlayers.contains(bFirstPlayer)
-                        && availableSecondPlayers.contains(aSecondPlayer) && availableSecondPlayers.contains(bSecondPlayer)) {
-                    round.addMatch(match);
+                if (availableFirstPlayers.contains(aFirstPlayer) && availableFirstPlayers.contains(bFirstPlayer)) {
+                    if (availableSecondPlayers.contains(aSecondPlayer) && availableSecondPlayers.contains(bSecondPlayer)) {
+                        round.addMatch(match);
 
-                    availableFirstPlayers.remove(aFirstPlayer);
-                    availableFirstPlayers.remove(bFirstPlayer);
-                    availableSecondPlayers.remove(aSecondPlayer);
-                    availableSecondPlayers.remove(bSecondPlayer);
+                        availableFirstPlayers.remove(aFirstPlayer);
+                        availableFirstPlayers.remove(bFirstPlayer);
+                        availableSecondPlayers.remove(aSecondPlayer);
+                        availableSecondPlayers.remove(bSecondPlayer);
+                    }
                 }
             }
 
             // Clean-up
             for (AbstractMatch match : round.getMatchList()) {
-                matchList.remove(match);
+                // Remove match from matchList
+                int matchIndex = -1;
+
+                for (int i = 0; i < matchList.size(); i++) {
+                    if (matchList.get(i).getTeamA().toString().equalsIgnoreCase(match.getTeamA().toString())) {
+                        if (matchList.get(i).getTeamB().toString().equalsIgnoreCase(match.getTeamB().toString())) {
+                            matchIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (matchIndex != -1) {
+                    matchList.remove(matchIndex);
+                } else {
+                    System.err.println("ERROR : match " + match + " was not found in list.");
+                }
+
+                // Remove reciprocal match from matchList
+                int reciprocalMatchIndex = -1;
+
+                for (int i = 0; i < matchList.size(); i++) {
+                    AbstractMatch item = matchList.get(i);
+
+                    if (item.getTeamA().toString().equalsIgnoreCase(match.getTeamB().toString())) {
+                        if (item.getTeamB().toString().equalsIgnoreCase(match.getTeamA().toString())) {
+                            reciprocalMatchIndex = i;
+                            break;
+                        }
+                    }
+                }
 
                 // Clear reciprocal match if exists
-                AbstractMatch reciprocalMatch = new DoubleMatch((DoublePlayerTeam) match.getTeamB(), (DoublePlayerTeam) match.getTeamA());
-                matchList.remove(reciprocalMatch);
+                if (reciprocalMatchIndex != -1) {
+                    matchList.remove(reciprocalMatchIndex);
+                } else {
+                    System.err.println("ERROR : reciprocal match was not found in list.");
+                }
             }
 
+            // Reset for next occurence
             rounds.add(round);
             round = new MatchSet();
 
-            availableFirstPlayers.addAll(playersLists.get(0));
-            availableSecondPlayers.addAll(playersLists.get(1));
+            if (matchList.size() > 0) {
+                availableFirstPlayers.clear();
+                availableSecondPlayers.clear();
+
+                availableFirstPlayers.addAll(playersLists.get(0));
+                availableSecondPlayers.addAll(playersLists.get(1));
+            }
         }
 
         return rounds;
