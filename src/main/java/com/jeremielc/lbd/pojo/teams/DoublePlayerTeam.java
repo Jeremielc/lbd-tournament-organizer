@@ -1,7 +1,7 @@
 package com.jeremielc.lbd.pojo.teams;
 
 public class DoublePlayerTeam extends AbstractTeam {
-    public static final String SEPARATOR = " & ";
+    public static final String SEPARATOR = "-";
 
     private final String secondPlayer;
 

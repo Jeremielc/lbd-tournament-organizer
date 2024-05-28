@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
-import com.jeremielc.lbd.pojo.MatchSet;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
@@ -29,11 +28,14 @@ public class Main {
     // private static final String[] men = {"Alain", "Bart", "Chris", "David", "Eric", "Fred", "Gabin", "Hubert", "Ian", "Jean"};
     // private static final String[] women = {"Alice", "Betty", "Célia", "Deby", "Elsa", "Fanny", "Gaële", "Hanah", "Ilda", "Julia"};
 
+    private static final int DRAFT_TIMEOUT = 5;
+    private static final int COURT_COUNT = 4;
+    private static final int THREAD_COUNT_LIMIT = 1000000;
+
     private static final List<String> menList = Arrays.asList(men);
     private static final List<String> womenList = Arrays.asList(women);
 
-    private static final int threadCountlimit = 1000000;
-    private static final CountDownLatch latch = new CountDownLatch(threadCountlimit);
+    private static final CountDownLatch latch = new CountDownLatch(THREAD_COUNT_LIMIT);
     private static final List<TournamentConfig> candidates = new ArrayList<>();
 
     private static int cores = Runtime.getRuntime().availableProcessors() * 4;
@@ -49,7 +51,7 @@ public class Main {
         OngoingDisplayTask displayTask = new OngoingDisplayTask();
         displayTask.run();
 
-        for (int i = 0; i < threadCountlimit; i++) {
+        for (int i = 0; i < THREAD_COUNT_LIMIT; i++) {
             tpe.submit(() -> {
                 try {
                     List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
@@ -68,7 +70,7 @@ public class Main {
         }
             
         try {
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(DRAFT_TIMEOUT, TimeUnit.SECONDS);
             tpe.awaitTermination(1, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             System.err.println(ex.getMessage());
@@ -90,26 +92,7 @@ public class Main {
         System.out.printf(Locale.getDefault(), "Elapsed time: %,d ms\n", Duration.between(start, stop).toMillis());
 
         try {
-            List<MatchSet> rounds = Planner.plan(4, bestConfig);
-
-            StringBuilder sb = new StringBuilder();
-            
-            for (int i = 0; i < rounds.size(); i++) {
-                sb.append("#" + (i + 1) + ":\t");
-
-                for (int j = 0; j < rounds.get(i).getMatchList().size(); j++) {
-                    sb.append("Court #" + (j + 1) + ":\t");
-                    sb.append(rounds.get(i).getMatchList().get(j));
-
-                    if (j < rounds.get(i).getMatchList().size() - 1) {
-                        sb.append("\t| ");
-                    }
-                }
-
-                sb.append("\n");
-            }
-
-            System.out.println(sb.toString());
+            Planner.displayPlanning(Planner.plan(COURT_COUNT, bestConfig), COURT_COUNT);            
         } catch (InvalidPlayerListException ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);

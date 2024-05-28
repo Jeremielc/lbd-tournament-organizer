@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
@@ -23,6 +24,31 @@ public class Planner {
         }
 
         return new ArrayList<>(0);
+    }
+
+    public static void displayPlanning(List<MatchSet> rounds, int courtCount) {
+        List<MatchSet> sortedRounds = sortRounds(rounds, courtCount);
+
+        String roundFormat = "%0" + String.valueOf(sortedRounds.size()).length() + "d";
+            String courtFormat = "%0" + String.valueOf(courtCount).length() + "d";
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < sortedRounds.size(); i++) {
+                sb.append(String.format("Round #" + roundFormat + ": ", i + 1));
+
+                for (int j = 0; j < sortedRounds.get(i).getMatchList().size(); j++) {
+                    sb.append(String.format("Court #" + courtFormat + ": ", j + 1));
+                    sb.append(sortedRounds.get(i).getMatchList().get(j));
+
+                    if (j < sortedRounds.get(i).getMatchList().size() - 1) {
+                        sb.append(" | ");
+                    }
+                }
+
+                sb.append("\n");
+            }
+
+            System.out.println(sb.toString());
     }
 
     private static List<MatchSet> planSingleMatchList(int courtCount, List<AbstractMatch> matchList) throws IllegalTeamException {
@@ -142,6 +168,18 @@ public class Planner {
         List<List<String>> result = new ArrayList<>(2);
         result.add(firstResult);
         result.add(secondResult);
+
+        return result;
+    }
+
+    private static List<MatchSet> sortRounds(List<MatchSet> rounds, int courtCount) {
+        List<MatchSet> result = new ArrayList<>();
+        AtomicInteger size = new AtomicInteger();
+
+        for (int i = courtCount; i > 1; i--) {
+            size.set(i);
+            rounds.stream().filter(item -> item.getMatchList().size() == size.get()).forEach(result::add);
+        }
 
         return result;
     }
