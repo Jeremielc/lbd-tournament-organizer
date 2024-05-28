@@ -38,6 +38,10 @@ public class RandomMatchMaker {
             } else {
                 aTeam = combinations.get(0);
                 bTeam = combinations.get(1);
+
+                if (aTeam.getFirstPlayer().equals(bTeam.getFirstPlayer()) || aTeam.getSecondPlayer().equals(bTeam.getSecondPlayer())) {
+                    return null;
+                }
             }
 
             try {
