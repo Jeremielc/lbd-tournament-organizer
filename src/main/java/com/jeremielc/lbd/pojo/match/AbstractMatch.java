@@ -4,7 +4,7 @@ import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.pojo.teams.AbstractTeam;
 
 public abstract class AbstractMatch {
-    public static final String SEPARATOR = " vs ";
+    public static final String SEPARATOR = " VS ";
 
     private final AbstractTeam teamA;
     private final AbstractTeam teamB;

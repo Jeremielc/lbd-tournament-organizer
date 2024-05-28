@@ -13,38 +13,76 @@ import java.util.concurrent.TimeUnit;
 
 import com.jeremielc.lbd.exceptions.InvalidCombinationsSizeException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
+import com.jeremielc.lbd.pojo.MatchSet;
 import com.jeremielc.lbd.pojo.TournamentConfig;
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
 import com.jeremielc.lbd.pojo.teams.DoublePlayerTeam;
+import com.jeremielc.lbd.pojo.teams.SinglePlayerTeam;
 import com.jeremielc.lbd.tasks.OngoingDisplayTask;
 
 public class Main {
     // private static final String[] men = {"A", "B", "C", "D"};
     // private static final String[] women = {"0", "1", "2", "3"};
-    private static final String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
-    private static final String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+    // private static final String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+    // private static final String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     // private static final String[] men = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"};
     // private static final String[] women = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
-    // private static final String[] men = {"Alain", "Bart", "Chris", "David", "Eric", "Fred", "Gabin", "Hubert", "Ian", "Jean"};
-    // private static final String[] women = {"Alice", "Betty", "Célia", "Deby", "Elsa", "Fanny", "Gaële", "Hanah", "Ilda", "Julia"};
+    private static final String[] men = {"Alain", "Bart", "Chris", "David", "Eric", "Fred", "Gabin", "Hubert", "Ian", "Jean"};
+    private static final String[] women = {"Alice", "Betty", "Célia", "Deby", "Elsa", "Fanny", "Gaële", "Hanah", "Ilda", "Julia"};
 
-    private static final int DRAFT_TIMEOUT = 5;
+    private static final int DRAFT_TIMEOUT = 29;
     private static final int COURT_COUNT = 4;
     private static final int THREAD_COUNT_LIMIT = 1000000;
+    private static final boolean VERBOSE = false;
 
-    private static final List<String> menList = Arrays.asList(men);
-    private static final List<String> womenList = Arrays.asList(women);
-
-    private static final CountDownLatch latch = new CountDownLatch(THREAD_COUNT_LIMIT);
     private static final List<TournamentConfig> candidates = new ArrayList<>();
 
-    private static int cores = Runtime.getRuntime().availableProcessors() * 4;
-    private static Instant start, stop;
-
     public static void main(String[] args) {
+        //computeSinglePlayerTournament();
+        computeDoublePlayerTournament();
+
+        System.exit(0);
+    }
+
+    public static void computeSinglePlayerTournament() {
+        List<String> playerList = Arrays.asList(men);
+
+        try {
+            List<SinglePlayerTeam> combinations = Combinator.generateSingleCombinations(playerList);
+            List<AbstractMatch> matchList = RandomMatchMaker.generateSingleMatchList(combinations);
+            String[][] versusTable = TableMaker.generateVersusTable(playerList, playerList, matchList);
+            TournamentConfig config = new TournamentConfig(0, versusTable, matchList);
+            TableMaker.exportVersusTableToCsv(playerList, playerList, versusTable);
+            
+            if (VERBOSE) {
+                TableMaker.displayVersusTable(playerList, playerList, config.getVersusTable(), false);
+            }
+            
+            List<MatchSet> planning = Planner.plan(COURT_COUNT, config);
+            Planner.exportPlanningToCsv(planning, COURT_COUNT);
+
+            if (VERBOSE) {
+                Planner.displayPlanning(planning, COURT_COUNT);
+            }
+        } catch (InvalidPlayerListException ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
+    }
+
+    public static void computeDoublePlayerTournament() {
+        Instant start, stop;
+        CountDownLatch latch = new CountDownLatch(THREAD_COUNT_LIMIT);
+
+        int cores = Runtime.getRuntime().availableProcessors() * 4;
         cores = cores > 16 ? cores : 16;
+
         ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(cores);
-        System.out.printf(Locale.getDefault(), "Processing will use %,d cores\n", cores);
+        System.out.printf(Locale.getDefault(), "Processing will use %,d virtual cores.\n", cores);
+        
+        List<String> menList = Arrays.asList(men);
+        List<String> womenList = Arrays.asList(women);
+        candidates.clear();
 
         start = Instant.now();
 
@@ -56,10 +94,13 @@ public class Main {
                 try {
                     List<DoublePlayerTeam> combinations = Combinator.generateMixedPairCombinations(menList, womenList);
                     List<AbstractMatch> matchList = RandomMatchMaker.generateRandomDoubleMatchList(combinations);
-                    String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matchList);
-                    int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
-                    
-                    addCandidate(new TournamentConfig(score, versusTable, matchList));
+
+                    if (matchList != null) {
+                        String[][] versusTable = TableMaker.generateVersusTable(menList, womenList, matchList);
+                        int score = ScoreComputer.computeMatchmakingScore(versusTable, menList, womenList);
+                        
+                        addCandidate(new TournamentConfig(score, versusTable, matchList));
+                    }
                 } catch (InvalidPlayerListException | InvalidCombinationsSizeException ex) {
                     System.err.println(ex.getMessage());
                     ex.printStackTrace(System.err);
@@ -87,18 +128,25 @@ public class Main {
         System.out.printf(Locale.getDefault(), "Best configuration of %,d:\n", candidates.size());
         System.out.printf(Locale.getDefault(), " - Score: %,d\n", bestConfig.getScore());
 
-        TableMaker.displayVersusTable(menList, womenList, bestConfig.getVersusTable(), false);
+        TableMaker.exportVersusTableToCsv(menList, womenList, bestConfig.getVersusTable());
+
+        if (VERBOSE) {
+            TableMaker.displayVersusTable(menList, womenList, bestConfig.getVersusTable(), false);
+        }
 
         System.out.printf(Locale.getDefault(), "Elapsed time: %,d ms\n", Duration.between(start, stop).toMillis());
 
         try {
-            Planner.displayPlanning(Planner.plan(COURT_COUNT, bestConfig), COURT_COUNT);            
+            List<MatchSet> planning = Planner.plan(COURT_COUNT, bestConfig);
+            Planner.exportPlanningToCsv(planning, COURT_COUNT);
+
+            if (VERBOSE) {
+                Planner.displayPlanning(planning, COURT_COUNT);
+            }
         } catch (InvalidPlayerListException ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
         }
-
-        System.exit(0);
     }
 
     private static synchronized void addCandidate(TournamentConfig config) {

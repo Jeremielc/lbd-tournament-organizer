@@ -1,6 +1,11 @@
 package com.jeremielc.lbd;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
+import java.util.Calendar;
 import java.util.List;
 
 import com.jeremielc.lbd.pojo.match.AbstractMatch;
@@ -121,6 +126,51 @@ public class TableMaker {
         }
 
         System.out.println(content.toString());
+    }
+
+    public static void exportVersusTableToCsv(List<String> firstPlayers, List<String> secondPlayers, String[][] versusTable) {
+        char separator = ';';
+
+        // Header
+        StringBuilder header = new StringBuilder();
+        header.append(separator);
+
+        for (int i = 0; i < firstPlayers.size(); i++) {
+            header.append(firstPlayers.get(i)).append(separator);
+        }
+        
+        header.append("\n");
+
+        // Table content
+        StringBuilder content = new StringBuilder();
+
+        for (int i = 0; i < secondPlayers.size(); i++) {
+            content.append(secondPlayers.get(i)).append(separator);
+
+            for (String cellContent : versusTable[i]) {
+                content.append(cellContent).append(separator);
+            }
+
+            content.append("\n");
+        }
+
+        String fileName = String.format(
+            "%04d-%02d-%02d-%02d-%02d-%02d - Matches.csv",
+            Calendar.getInstance().get(Calendar.YEAR),
+            Calendar.getInstance().get(Calendar.MONTH),
+            Calendar.getInstance().get(Calendar.DAY_OF_MONTH),
+            Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+            Calendar.getInstance().get(Calendar.MINUTE),
+            Calendar.getInstance().get(Calendar.SECOND)
+        );
+
+        try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8)) {
+            osw.write(header.toString());
+            osw.write(content.toString());
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
     }
 
     private static int getIndexOf(String value, List<String> inList) {
