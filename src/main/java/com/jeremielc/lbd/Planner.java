@@ -9,7 +9,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.jeremielc.lbd.exceptions.IllegalTeamException;
 import com.jeremielc.lbd.exceptions.InvalidPlayerListException;
@@ -299,11 +298,10 @@ public class Planner {
 
     private static List<MatchSet> sortRounds(List<MatchSet> rounds, int courtCount) {
         List<MatchSet> result = new ArrayList<>();
-        AtomicInteger size = new AtomicInteger();
 
-        for (int i = courtCount; i > 1; i--) {
-            size.set(i);
-            rounds.stream().filter(item -> item.getMatchList().size() == size.get()).forEach(result::add);
+        for (int i = courtCount; i > 0; i--) {
+            final int size = i;
+            rounds.stream().filter(item -> item.getMatchList().size() == size).forEach(result::add);
         }
 
         return result;
