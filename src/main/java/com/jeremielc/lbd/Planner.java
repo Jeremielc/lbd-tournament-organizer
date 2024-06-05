@@ -105,7 +105,7 @@ public class Planner {
         String fileName = String.format(
             "%04d-%02d-%02d-%02d-%02d-%02d - Planning.csv",
             Calendar.getInstance().get(Calendar.YEAR),
-            Calendar.getInstance().get(Calendar.MONTH),
+            Calendar.getInstance().get(Calendar.MONTH) + 1,
             Calendar.getInstance().get(Calendar.DAY_OF_MONTH),
             Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
             Calendar.getInstance().get(Calendar.MINUTE),
