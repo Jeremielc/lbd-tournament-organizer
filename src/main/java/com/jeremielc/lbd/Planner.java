@@ -6,7 +6,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -181,6 +183,12 @@ public class Planner {
     }
 
     private static List<MatchSet> planDoubleMatchList(int courtCount, List<AbstractMatch> matchList) throws IllegalTeamException {
+        Map<AbstractMatch, Boolean> matchMap = new HashMap<>();
+
+        for (AbstractMatch match : matchList) {
+            matchMap.put(match, true);
+        }
+
         List<MatchSet> rounds = new ArrayList<>();
         MatchSet round = new MatchSet();
 
@@ -191,8 +199,8 @@ public class Planner {
         availableFirstPlayers.addAll(playersLists.get(0));
         availableSecondPlayers.addAll(playersLists.get(1));
 
-        while (matchList.size() > 0) {
-            for (AbstractMatch match : matchList) {
+        while (matchMap.entrySet().stream().filter(item -> item.getValue() == true).count() > 0) {
+            for (Map.Entry<AbstractMatch, Boolean> matchEntry : matchMap.entrySet().stream().filter(item -> item.getValue() == true).toList()) {
                 if (round.getMatchList() != null && round.getMatchList().size() == courtCount) {
                     break;
                 }
@@ -201,8 +209,8 @@ public class Planner {
                     break;
                 }
 
-                AbstractTeam aTeam = match.getTeamA();
-                AbstractTeam bTeam = match.getTeamB();
+                AbstractTeam aTeam = matchEntry.getKey().getTeamA();
+                AbstractTeam bTeam = matchEntry.getKey().getTeamB();
 
                 String aFirstPlayer = ((DoublePlayerTeam) aTeam).getFirstPlayer();
                 String aSecondPlayer = ((DoublePlayerTeam) aTeam).getSecondPlayer();
@@ -211,7 +219,7 @@ public class Planner {
 
                 if (availableFirstPlayers.contains(aFirstPlayer) && availableFirstPlayers.contains(bFirstPlayer)) {
                     if (availableSecondPlayers.contains(aSecondPlayer) && availableSecondPlayers.contains(bSecondPlayer)) {
-                        round.addMatch(match);
+                        round.addMatch(matchEntry.getKey());
 
                         availableFirstPlayers.remove(aFirstPlayer);
                         availableFirstPlayers.remove(bFirstPlayer);
@@ -223,14 +231,14 @@ public class Planner {
 
             // Clean-up
             for (AbstractMatch match : round.getMatchList()) {
-                // Remove match from matchList
-                matchList.remove(match);
+                // Remove match from available match list
+                matchMap.put(match, false);
 
-                // Remove reciprocal match from matchList
-                for (AbstractMatch item : matchList) {
-                    if (item.getTeamA().toString().equals(match.getTeamB().toString())) {
-                        if (item.getTeamB().toString().equals(match.getTeamA().toString())) {
-                            matchList.remove(item);
+                // Remove reciprocal match from availbale match list
+                for (Map.Entry<AbstractMatch, Boolean> matchEntry : matchMap.entrySet().stream().filter(item -> item.getValue() == true).toList()) {
+                    if (matchEntry.getKey().getTeamA().toString().equals(match.getTeamB().toString())) {
+                        if (matchEntry.getKey().getTeamB().toString().equals(match.getTeamA().toString())) {
+                            matchMap.put(matchEntry.getKey(), false);
                             break;
                         }
                     }
@@ -241,7 +249,7 @@ public class Planner {
             rounds.add(round);
             round = new MatchSet();
 
-            if (matchList.size() > 0) {
+            if (matchMap.entrySet().stream().filter(item -> item.getValue() == true).toList().size() > 0) {
                 availableFirstPlayers.clear();
                 availableSecondPlayers.clear();
 
